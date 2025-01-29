@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Generator</title>
+    <style>
+        /* Previous styles remain the same */
+        
+        
+        
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        input, select {
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 12px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #jsonOutput {
+            background-color: #000;
+            color: #00ff00;
+            padding: 15px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-direction: column;
+        }
+
+        .copy-btn {
+            background-color: #008CBA;
+        }
+
+        .download-btn {
+            background-color: #f44336;
+        }
+
+        @media (min-width: 600px) {
+            .input-group {
+                flex-direction: row;
+            }
+            
+            button {
+                width: auto;
+            }
+
+            .action-buttons {
+                flex-direction: row;
+            }
+            
+            input, select {
+                width: auto;
+                flex: 1;
+            }
+            
+            .input-group {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 10px;
+            flex-direction: column;
+        }
+
+        input {
+            padding: 12px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 12px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #jsonOutput {
+            background-color: #000;
+            color: #00ff00;
+            padding: 15px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-direction: column;
+        }
+
+        .copy-btn {
+            background-color: #008CBA;
+        }
+
+        .download-btn {
+            background-color: #f44336;
+        }
+
+        @media (min-width: 600px) {
+            .input-group {
+                flex-direction: row;
+            }
+            
+            button {
+                width: auto;
+            }
+
+            .action-buttons {
+                flex-direction: row;
+            }
+            
+            input {
+                width: auto;
+                flex: 1;
+            }
+            
+        }
+    </style>
+</head>
+<body>
+    <h2>JSON Generator</h2>
+    
+    <div class="input-group">
+        <input type="text" id="keyInput" placeholder="Enter key">
+        <select id="typeSelect" onchange="handleTypeChange()">
+            <option value="string">String</option>
+            <option value="number">Number</option>
+            <option value="boolean">Boolean</option>
+            <option value="null">Null</option>
+        </select>
+        <div id="valueContainer">
+            <input type="text" id="valueInput" placeholder="Enter value">
+        </div>
+    </div>
+    
+    <button onclick="addEntry()">Add Entry</button>
+    
+    <div id="jsonOutput"></div>
+    
+    <div class="action-buttons">
+        <button class="download-btn" onclick="downloadJSON()">Download JSON</button>
+        <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
+    </div>
+
+    <script>
+        let jsonData = {};
+
+        function handleTypeChange() {
+            const type = document.getElementById('typeSelect').value;
+            const valueContainer = document.getElementById('valueContainer');
+            valueContainer.innerHTML = '';
+
+            if (type === 'boolean') {
+                const select = document.createElement('select');
+                select.id = 'valueInput';
+                select.innerHTML = `
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                `;
+                valueContainer.appendChild(select);
+            } else if (type === 'null') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'valueInput';
+                input.placeholder = 'null';
+                input.disabled = true;
+                valueContainer.appendChild(input);
+            } else {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'valueInput';
+                input.placeholder = type === 'number' ? 'Enter number' : 'Enter value';
+                valueContainer.appendChild(input);
+            }
+        }
+
+        function addEntry() {
+            const key = document.getElementById('keyInput').value.trim();
+            const type = document.getElementById('typeSelect').value;
+            let value;
+
+            // Validate key
+            if (!key) {
+                alert('Key is required!');
+                return;
+            }
+
+            // Check for duplicate keys
+            if (jsonData.hasOwnProperty(key)) {
+                alert('Duplicate keys are not allowed!');
+                return;
+            }
+
+            // Process value based on type
+            switch(type) {
+                case 'string':
+                    value = document.getElementById('valueInput').value.trim();
+                    if (!value) {
+                        alert('String value cannot be empty!');
+                        return;
+                    }
+                    break;
+                
+                case 'number':
+                    const numValue = document.getElementById('valueInput').value.trim();
+                    if (!/^-?(0|[1-9]\d*)(\.\d+)?$/.test(numValue)) {
+                        alert('Invalid number format! Must be a valid number without leading zeros.');
+                        return;
+                    }
+                    value = Number(numValue);
+                    break;
+                
+                case 'boolean':
+                    value = document.getElementById('valueInput').value === 'true';
+                    break;
+                
+                case 'null':
+                    value = null;
+                    break;
+            }
+
+            // Add to JSON data
+            jsonData[key] = value;
+            updateJSONDisplay();
+            
+            // Clear inputs
+            document.getElementById('keyInput').value = '';
+            document.getElementById('valueInput').value = '';
+            document.getElementById('keyInput').focus();
+        }
+
+        function updateJSONDisplay() {
+            const jsonOutput = document.getElementById('jsonOutput');
+            jsonOutput.textContent = JSON.stringify(jsonData, null, 2);
+        }
+
+        function downloadJSON() {
+            const dataStr = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyJSON() {
+            const jsonText = JSON.stringify(jsonData, null, 2);
+            navigator.clipboard.writeText(jsonText)
+                .then(() => alert('JSON copied to clipboard!'))
+                .catch(err => console.error('Failed to copy:', err));
+        }
+    </script>
+</body>
+  </html>
