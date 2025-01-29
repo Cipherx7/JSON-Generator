@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON Generator</title>
@@ -265,13 +266,18 @@
                 .catch(() => alert('Copy failed'));
         }
 
-         async function hostJSON() {
+         const GITHUB_TOKEN = "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"; // Replace with your actual token
+
+async function hostJSON() {
     const jsonDataStr = JSON.stringify(jsonData, null, 2);
 
     try {
         const response = await fetch('https://api.github.com/gists', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `token ${GITHUB_TOKEN}`
+            },
             body: JSON.stringify({
                 description: "JSON hosted from JSON Generator",
                 public: true,
@@ -283,7 +289,7 @@
 
         const data = await response.json();
         const publicUrl = data.html_url; // GitHub Gist URL
-        
+
         // Update UI to show link
         document.getElementById('publicLink').href = publicUrl;
         document.getElementById('publicLink').textContent = publicUrl;
@@ -292,7 +298,6 @@
     } catch (error) {
         alert('Error hosting JSON: ' + error.message);
     }
-}
 
 
         updateKeyList();
