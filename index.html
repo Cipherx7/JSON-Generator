@@ -5,165 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JSON Generator</title>
     <style>
-        /* Previous styles remain the same */
-        
-        
-        
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-
-        .input-group {
-            margin-bottom: 10px;
-            display: flex;
-            gap: 10px;
-            flex-direction: column;
-        }
-
-        input, select {
-            padding: 12px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        button {
-            padding: 12px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        #jsonOutput {
-            background-color: #000;
-            color: #00ff00;
-            padding: 15px;
-            margin: 20px 0;
-            white-space: pre-wrap;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-size: 14px;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-direction: column;
-        }
-
-        .copy-btn {
-            background-color: #008CBA;
-        }
-
-        .download-btn {
-            background-color: #f44336;
-        }
-
-        @media (min-width: 600px) {
-            .input-group {
-                flex-direction: row;
-            }
-            
-            button {
-                width: auto;
-            }
-
-            .action-buttons {
-                flex-direction: row;
-            }
-            
-            input, select {
-                width: auto;
-                flex: 1;
-            }
-            
-            .input-group {
-            margin-bottom: 10px;
-            display: flex;
-            gap: 10px;
-            flex-direction: column;
-        }
-
-        input {
-            padding: 12px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        button {
-            padding: 12px 15px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        #jsonOutput {
-            background-color: #000;
-            color: #00ff00;
-            padding: 15px;
-            margin: 20px 0;
-            white-space: pre-wrap;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-size: 14px;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-direction: column;
-        }
-
-        .copy-btn {
-            background-color: #008CBA;
-        }
-
-        .download-btn {
-            background-color: #f44336;
-        }
-
-        @media (min-width: 600px) {
-            .input-group {
-                flex-direction: row;
-            }
-            
-            button {
-                width: auto;
-            }
-
-            .action-buttons {
-                flex-direction: row;
-            }
-            
-            input {
-                width: auto;
-                flex: 1;
-            }
-            
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        .input-group { margin-bottom: 10px; display: flex; gap: 10px; flex-direction: column; }
+        input, select, button, textarea { padding: 12px; width: 100%; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; font-size: 16px; }
+        button:hover { opacity: 0.9; }
+        #jsonOutput { background: #000; color: #00ff00; padding: 15px; margin: 20px 0; white-space: pre-wrap; border-radius: 5px; overflow-x: auto; font-size: 14px; }
+        .action-buttons { display: flex; gap: 10px; margin-top: 10px; flex-direction: column; }
+        .copy-btn { background-color: #008CBA; }
+        .download-btn { background-color: #f44336; }
+        .edit-delete { display: flex; gap: 10px; margin-bottom: 15px; }
+        .import-menu { position: relative; display: inline-block; }
+        .import-options { display: none; position: absolute; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1; min-width: 200px; }
+        .import-options button { width: 100%; border-radius: 0; text-align: left; background: #f8f8f8; color: #333; }
+        .import-options button:hover { background: #eee; }
+        .show { display: flex; flex-direction: column; gap: 2px; }
+        .hidden { display: none; }
+        @media (min-width: 600px) { 
+            .input-group, .action-buttons, .edit-delete { flex-direction: row; }
+            button, input, select { width: auto; flex: 1; }
         }
     </style>
 </head>
 <body>
     <h2>JSON Generator</h2>
     
+    <div class="edit-delete">
+        <select id="keyList" onchange="loadKey()"></select>
+        <button onclick="deleteKey()">Delete Selected</button>
+    </div>
+
     <div class="input-group">
         <input type="text" id="keyInput" placeholder="Enter key">
         <select id="typeSelect" onchange="handleTypeChange()">
@@ -177,17 +48,95 @@
         </div>
     </div>
     
-    <button onclick="addEntry()">Add Entry</button>
-    
+    <button onclick="addEntry()">Add/Update Entry</button>
+
+    <div class="import-menu">
+        <button onclick="toggleImportOptions()">Import JSON</button>
+        <div id="importOptions" class="import-options">
+            <button onclick="showImportSection('url')">From URL</button>
+            <button onclick="showImportSection('file')">From File</button>
+            <button onclick="showImportSection('clipboard')">From Clipboard</button>
+            <button onclick="showImportSection('text')">From Text</button>
+        </div>
+    </div>
+
+    <div id="importSections">
+        <div id="urlImport" class="hidden">
+            <input type="text" id="importUrl" placeholder="Enter JSON URL">
+            <button onclick="importFromURL()">Load from URL</button>
+        </div>
+        
+        <div id="fileImport" class="hidden">
+            <input type="file" id="fileInput" accept=".json,text/plain">
+        </div>
+
+        <div id="textImport" class="hidden">
+            <textarea id="textInput" placeholder="Paste JSON here"></textarea>
+            <button onclick="importFromText()">Load from Text</button>
+        </div>
+    </div>
+
     <div id="jsonOutput"></div>
+
+    <div id="publicLinkContainer" class="hidden">
+    <p>Public Link: <a id="publicLink" href="#" target="_blank"></a></p>
+</div>
     
     <div class="action-buttons">
         <button class="download-btn" onclick="downloadJSON()">Download JSON</button>
         <button class="copy-btn" onclick="copyJSON()">Copy JSON</button>
+        <button class="host-btn" onclick="hostJSON()">Host JSON</button>
+
     </div>
 
     <script>
         let jsonData = {};
+        let editingKey = null;
+
+        function toggleImportOptions() {
+            document.getElementById('importOptions').classList.toggle('show');
+        }
+
+        function showImportSection(type) {
+            document.querySelectorAll('#importSections > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(`${type}Import`).classList.remove('hidden');
+            document.getElementById('importOptions').classList.remove('show');
+        }
+
+        function updateKeyList() {
+            const keyList = document.getElementById('keyList');
+            keyList.innerHTML = Object.keys(jsonData).map(key => 
+                `<option value="${key}">${key}</option>`
+            ).join('');
+        }
+
+        function loadKey() {
+            const key = document.getElementById('keyList').value;
+            editingKey = key;
+            document.getElementById('keyInput').value = key;
+            const value = jsonData[key];
+            
+            let type = 'string';
+            if (typeof value === 'number') type = 'number';
+            else if (typeof value === 'boolean') type = 'boolean';
+            else if (value === null) type = 'null';
+            
+            document.getElementById('typeSelect').value = type;
+            handleTypeChange();
+            
+            if (type !== 'null') {
+                document.getElementById('valueInput').value = value;
+            }
+        }
+
+        function deleteKey() {
+            const key = document.getElementById('keyList').value;
+            if (key && confirm(`Delete ${key}?`)) {
+                delete jsonData[key];
+                updateJSONDisplay();
+                updateKeyList();
+            }
+        }
 
         function handleTypeChange() {
             const type = document.getElementById('typeSelect').value;
@@ -197,10 +146,7 @@
             if (type === 'boolean') {
                 const select = document.createElement('select');
                 select.id = 'valueInput';
-                select.innerHTML = `
-                    <option value="true">true</option>
-                    <option value="false">false</option>
-                `;
+                select.innerHTML = `<option value="true">true</option><option value="false">false</option>`;
                 valueContainer.appendChild(select);
             } else if (type === 'null') {
                 const input = document.createElement('input');
@@ -223,66 +169,87 @@
             const type = document.getElementById('typeSelect').value;
             let value;
 
-            // Validate key
-            if (!key) {
-                alert('Key is required!');
-                return;
-            }
+            if (!key) return alert('Key required');
+            if (key !== editingKey && jsonData.hasOwnProperty(key)) return alert('Duplicate key');
 
-            // Check for duplicate keys
-            if (jsonData.hasOwnProperty(key)) {
-                alert('Duplicate keys are not allowed!');
-                return;
-            }
-
-            // Process value based on type
             switch(type) {
                 case 'string':
                     value = document.getElementById('valueInput').value.trim();
-                    if (!value) {
-                        alert('String value cannot be empty!');
-                        return;
-                    }
+                    if (!value) return alert('Value required');
                     break;
-                
                 case 'number':
                     const numValue = document.getElementById('valueInput').value.trim();
-                    if (!/^-?(0|[1-9]\d*)(\.\d+)?$/.test(numValue)) {
-                        alert('Invalid number format! Must be a valid number without leading zeros.');
-                        return;
-                    }
+                    if (!/^-?(0|[1-9]\d*)(\.\d+)?$/.test(numValue)) return alert('Invalid number');
                     value = Number(numValue);
                     break;
-                
                 case 'boolean':
                     value = document.getElementById('valueInput').value === 'true';
                     break;
-                
                 case 'null':
                     value = null;
                     break;
             }
 
-            // Add to JSON data
+            if (editingKey && editingKey !== key) delete jsonData[editingKey];
             jsonData[key] = value;
+            editingKey = null;
             updateJSONDisplay();
-            
-            // Clear inputs
+            updateKeyList();
             document.getElementById('keyInput').value = '';
             document.getElementById('valueInput').value = '';
-            document.getElementById('keyInput').focus();
+        }
+
+        function importJSON(data) {
+            try {
+                jsonData = JSON.parse(data);
+                updateJSONDisplay();
+                updateKeyList();
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
+            }
+        }
+
+        async function importFromURL() {
+            const url = document.getElementById('importUrl').value;
+            if (!url) return alert('URL required');
+            try {
+                const response = await fetch(url);
+                const data = await response.text();
+                importJSON(data);
+            } catch (e) {
+                alert('Error loading URL: ' + e.message);
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function() { importJSON(reader.result) };
+            reader.readAsText(file);
+        });
+
+        async function importFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                importJSON(text);
+            } catch (e) {
+                alert('Clipboard access denied');
+            }
+        }
+
+        function importFromText() {
+            const text = document.getElementById('textInput').value;
+            importJSON(text);
         }
 
         function updateJSONDisplay() {
-            const jsonOutput = document.getElementById('jsonOutput');
-            jsonOutput.textContent = JSON.stringify(jsonData, null, 2);
+            document.getElementById('jsonOutput').textContent = JSON.stringify(jsonData, null, 2);
         }
 
         function downloadJSON() {
             const dataStr = JSON.stringify(jsonData, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            
             const a = document.createElement('a');
             a.href = url;
             a.download = 'data.json';
@@ -293,11 +260,34 @@
         }
 
         function copyJSON() {
-            const jsonText = JSON.stringify(jsonData, null, 2);
-            navigator.clipboard.writeText(jsonText)
-                .then(() => alert('JSON copied to clipboard!'))
-                .catch(err => console.error('Failed to copy:', err));
+            navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2))
+                .then(() => alert('Copied!'))
+                .catch(() => alert('Copy failed'));
         }
+
+         async function hostJSON() {
+        const jsonDataStr = JSON.stringify(jsonData);
+        const filename = `json-${Date.now().toString(36)}`;
+
+        try {
+            const response = await fetch('https://your-backend.com/api/host-json', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename, jsonData: jsonDataStr })
+            });
+
+            if (!response.ok) throw new Error('Failed to host JSON');
+
+            const { publicUrl } = await response.json();
+            document.getElementById('publicLink').href = publicUrl;
+            document.getElementById('publicLink').textContent = publicUrl;
+            document.getElementById('publicLinkContainer').classList.remove('hidden');
+        } catch (error) {
+            alert('Error hosting JSON: ' + error.message);
+        }
+
+        updateKeyList();
+        document.getElementById('importOptions').classList.remove('show');
     </script>
 </body>
-  </html>
+</html>
